@@ -1,0 +1,60 @@
+---
+import { SITE_TITLE } from '../consts';
+
+const pathname = Astro.url.pathname;
+---
+
+<nav>
+  <a href="/" class="brand">{SITE_TITLE}</a>
+  <div class="links">
+    <a href="/search" class:list={{ active: pathname === '/search' }}>Search</a>
+    <a href="/about" class:list={{ active: pathname === '/about' }}>About</a>
+    <a
+      href={new URL('rss.xml', Astro.site).toString()}
+      target="_blank"
+      rel="noopener">RSS</a
+    >
+  </div>
+</nav>
+
+<style>
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-md);
+    max-width: var(--width-page);
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .brand {
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+
+  .brand:hover {
+    color: var(--color-text-secondary);
+  }
+
+  .links {
+    display: flex;
+    gap: var(--space-md);
+  }
+
+  .links a {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    transition: color 0.15s ease;
+  }
+
+  .links a:hover,
+  .links a.active {
+    color: var(--color-text);
+  }
+</style>

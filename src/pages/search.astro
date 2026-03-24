@@ -1,0 +1,159 @@
+---
+import Layout from '../components/Layout.astro';
+---
+
+<Layout title="Search" description="Search blog posts">
+  <section class="search">
+    <h1>Search</h1>
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search posts..."
+      autocomplete="off"
+    />
+    <div id="results"></div>
+    <p id="empty" class="empty" style="display: none;">No posts found.</p>
+  </section>
+</Layout>
+
+<style>
+  .search {
+    max-width: var(--width-content);
+    margin: 0 auto;
+  }
+
+  h1 {
+    margin-bottom: var(--space-lg);
+  }
+
+  input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    outline: none;
+    margin-bottom: var(--space-lg);
+  }
+
+  input:focus {
+    border-color: var(--color-text-tertiary);
+  }
+
+  .empty {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+  }
+
+  #results :global(.result) {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: var(--space-lg);
+  }
+
+  #results :global(.result:hover .result-title) {
+    color: var(--color-text-secondary);
+  }
+
+  #results :global(.result-date) {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 0.8rem;
+    color: var(--color-text-tertiary);
+  }
+
+  #results :global(.result-title) {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: var(--space-xs) 0;
+    transition: color 0.15s ease;
+  }
+
+  #results :global(.result-desc) {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+</style>
+
+<script>
+  interface SearchEntry {
+    slug: string;
+    title: string;
+    description: string;
+    date: string;
+    body: string;
+  }
+
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const resultsDiv = document.getElementById('results')!;
+  const emptyMsg = document.getElementById('empty')!;
+
+  let posts: SearchEntry[] = [];
+
+  // Load the search index
+  fetch('/search-index.json')
+    .then((res) => res.json())
+    .then((data: SearchEntry[]) => {
+      posts = data;
+      // Check for ?q= param
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      if (q) {
+        input.value = q;
+        search(q);
+      }
+    });
+
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      search(input.value);
+    }, 200);
+  });
+
+  function search(query: string) {
+    const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+    if (terms.length === 0) {
+      resultsDiv.innerHTML = '';
+      emptyMsg.style.display = 'none';
+      return;
+    }
+
+    const matches = posts.filter((post) => {
+      const haystack = `${post.title} ${post.description} ${post.body}`.toLowerCase();
+      return terms.every((term) => haystack.includes(term));
+    });
+
+    if (matches.length === 0) {
+      resultsDiv.innerHTML = '';
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    emptyMsg.style.display = 'none';
+    resultsDiv.innerHTML = matches
+      .map((post) => {
+        const date = new Date(post.date).toLocaleDateString('en-us', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+        return `
+          <a href="/blog/${post.slug}/" class="result">
+            <div class="result-date">${date}</div>
+            <div class="result-title">${post.title}</div>
+            <p class="result-desc">${post.description}</p>
+          </a>
+        `;
+      })
+      .join('');
+  }
+</script>

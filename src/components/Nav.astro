@@ -7,6 +7,7 @@ const pathname = Astro.url.pathname;
 <nav>
   <a href="/" class="brand">{SITE_TITLE}</a>
   <div class="links">
+    <a href="/projects" class:list={{ active: pathname === '/projects' }}>Projects</a>
     <a href="/search" class:list={{ active: pathname === '/search' }}>Search</a>
     <a href="/about" class:list={{ active: pathname === '/about' }}>About</a>
     <a

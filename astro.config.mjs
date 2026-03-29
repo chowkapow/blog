@@ -4,13 +4,18 @@ import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 
+import cloudflare from "@astrojs/cloudflare";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://chowkapow.com",
+
   markdown: {
     shikiConfig: {
       theme: "github-light",
     },
   },
+
   integrations: [mdx(), sitemap()],
+  adapter: cloudflare()
 });
